@@ -1,0 +1,84 @@
+#!/opt/perl-5.10-dbg/bin/perl
+
+# COPYRIGHT AND LICENCE
+#
+# Copyright (C) 2008 WhitePages.com, Inc. with primary development by
+# Joshua ben Jore.
+#
+# This program is distributed WITHOUT ANY WARRANTY, including but not
+# limited to the implied warranties of merchantability or fitness for
+# a particular purpose.
+#
+# The program is free software.  You may distribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (either version 2 or any later version)
+# and the Perl Artistic License as published by O’Reilly Media, Inc.
+# Please open the files named gpl-2.0.txt and Artistic for a copy of
+# these licenses.
+
+use strict;
+use warnings;
+use Enbugger::OnError;
+#use Carp 'longmess';
+use Data::Dumper;
+*BLECH=\&BLECH::BLECH;
+print 'factorial=' . factorial( 5 ) . "\n";
+exit;
+
+sub factorial {
+	my $n = shift @_;
+	my $fact = 1;
+	if ( 1 == $n ) {
+	    my $cx = -1;
+	    ++$cx while caller 1+$cx;
+	    print "caller($cx)=" . caller($cx) . "\n";
+	    die 'hi there';
+	    warn 'OK!';
+	    # Enbugger::_idiotvale( @ARGV ? $ARGV[0] : 0 );
+	    $fact = 1;
+	}
+#	elsif ( $n == 3 ) {
+#	    $fact = $n * factorial( $n - 1 );
+#	    print "\$\@=$@" if $@;
+#	}
+	else {
+	    $fact = $n * factorial( $n - 1 );
+	}
+	print "factorial($n)=$fact\n";
+	return $fact;
+}
+package D;
+sub DESTROY { die }
+package BLECH;
+sub BLECH { die }
+
+__END__
+		for (;;) {
+                        printf("count=%d top_si=%d si_type=%d\n", count, top_si, top_si->si_type);
+			/* we may be in a higher stacklevel, so dig down deeper */
+			while (cxix < 0 && top_si->si_type != PERLSI_MAIN) {
+				top_si = top_si->si_prev;
+				ccstack = top_si->si_cxstack;
+				cxix = dopoptosub_at(ccstack, top_si->si_cxix);
+			}
+			if (cxix < 0) {
+				return;
+			}
+	
+			/* caller() should not report the automatic calls to &DB::sub */
+			if (PL_DBsub && GvCV(PL_DBsub) && cxix >= 0 &&
+				ccstack[cxix].blk_sub.cv == GvCV(PL_DBsub))
+				count++;
+
+			if (!count--)
+				break;
+
+			cxix = dopoptosub_at(ccstack, cxix - 1);
+		}
+
+
+## Local Variables:
+## mode: cperl
+## mode: auto-fill
+## cperl-indent-level: 4
+## End:

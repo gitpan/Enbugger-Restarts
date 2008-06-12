@@ -1,0 +1,15 @@
+--- #YAML:1.0
+name:                Enbugger-Restarts
+version:             0.01_01
+abstract:            Reach around in your stack and restart execution
+license:             perl
+author:              
+    - Whitepages.com, Inc <whitepage@cpan.org>
+generated_by:        ExtUtils::MakeMaker version 6.44
+distribution_type:   module
+requires:     
+    Enbugger:                      2.000
+    Test::More:                    0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3
