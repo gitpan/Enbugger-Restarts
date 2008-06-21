@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 40;
+use Test::More skip_all => 'Infinite loops';#tests => 40;
 use FindBin '$Bin';
 use lib $Bin;
 use Test::Enbugger::Restarts 'test_restart';
@@ -134,7 +134,7 @@ my @tests = (
 			    'leaving three',
 			    'leaving two' ] },
 	     { nth => 'DB=1',
-	       skip => 'Infinite loop',
+	       todo => 'Infinite loop',
 	       restart => 'seven',
 	       actions => [ 'entering two',
 			    'entering three',
@@ -148,7 +148,7 @@ my @tests = (
 			    'leaving three',
 			    'leaving two' ] },
 	     { nth => 'DB=2',
-	       skip => 'Infinite loop',
+	       todo => 'Infinite loop',
 	       restart => 'five',
 	       actions => [ 'entering two',
 			    'entering three',
@@ -163,7 +163,7 @@ my @tests = (
 			    'leaving three',
 			    'leaving two' ] },
 	     { nth => 'DB=3',
-	       skip => 'Infinite loop',
+	       todo => 'Infinite loop',
 	       restart => 'three',
 	       actions => [ 'entering two',
 			    'entering three',
@@ -179,7 +179,7 @@ my @tests = (
 			    'leaving three',
 			    'leaving two' ] },
 	     { nth => 'DB=4',
-	       skip => 'Infinite loop',
+	       todo => 'Infinite loop',
 	       restart => 'two',
 	       actions => [ 'entering two',
 			    'entering three',
@@ -206,16 +206,12 @@ my @tests = (
 	       expect => qr/piddle/i },
 	    );
 
-SKIP: {
-    skip( 'Infinite loops', 40 );
-    for my $test ( @tests ) {
-	
-	test_restart( {
-		       program => $test_program,
-		       perl_args => '-d:Enbugger::Restarts::Test',
-		       %$test,
-		      } );
-    }
+for my $test ( @tests ) {
+    test_restart( {
+		   program => $test_program,
+		   perl_args => '-d:Enbugger::Restarts::Test',
+		   %$test,
+		  } );
 }
 
 ## Local Variables:

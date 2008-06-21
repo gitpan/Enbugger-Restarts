@@ -25,7 +25,7 @@ use Data::Dumper   qw( Dumper    );
 use Test::More ();
 use File::Temp ();
 
-use vars qw( @EXPORT @EXPORT_OK %EXPORT_TAGS );
+use vars qw( @EXPORT @EXPORT_OK %EXPORT_TAGS $TODO );
 
 BEGIN {
     *import = \ &Exporter::import;
@@ -59,13 +59,17 @@ sub test_restart {
 		 $test->{nth},
 		 $tmp_nm,
 		);
-
-  SKIP: {
-	Test::More::skip $test->{skip}, 1 if $test->{skip};
-	system { $args[0] } @args;
-	Test::More::cmp_ok( 0+$?,
-			    ( $test->{croak} ? '!=' : '==' ),
-			    0, "$test->{program} $test->{nth} $tmp_nm" );
+    
+    local $TODO;
+  TODO: {
+      SKIP: {
+	    Test::More::skip $test->{skip}, 1 if exists $test->{skip};
+	    $TODO = $test->{todo} if exists $test->{todo};
+	    system { $args[0] } @args;
+	    Test::More::cmp_ok( 0+$?,
+				( $test->{croak} ? '!=' : '==' ),
+				0, "$test->{program} $test->{nth} $tmp_nm" );
+	}
     }
     
     # Accept the results.
@@ -75,9 +79,12 @@ sub test_restart {
     # Interprete the results.
     
     if ( $test->{expect} ) {
-      SKIP: {
-	    Test::More::skip $test->{skip}, 1 if $test->{skip};
-	    Test::More::like( $t, $test->{expect}, "Expected $test->{expect}" );
+      TODO: {
+	  SKIP: {
+		Test::More::skip $test->{skip}, 1 if $test->{skip};
+		$TODO = $test->{todo} if exists $test->{todo};
+		Test::More::like( $t, $test->{expect}, "Expected $test->{expect}" );
+	    }
 	}
     }
     
@@ -105,9 +112,12 @@ sub test_restart {
 	    # Restarted in which function?
 	    my $restart_sub = $ops_2sub{ $restart_op || '' };
 		
-	  SKIP: {
-		Test::More::skip( $test->{skip}, 1 ) if $test->{skip};
-		Test::More::is( $restart_sub, $expected_restart_sub, "Returned to $expected_restart_sub" );
+	  TODO: {
+	      SKIP: {
+		    Test::More::skip( $test->{skip}, 1 ) if $test->{skip};
+		    $TODO = $test->{todo} if exists $test->{todo};
+		    Test::More::is( $restart_sub, $expected_restart_sub, "Returned to $expected_restart_sub" );
+		}
 	    }
 	}
 	else {
@@ -120,11 +130,14 @@ sub test_restart {
 	local $Data::Dumper::Varname = 'actions';
 	local $Data::Dumper::Terse   = 2;
 	my @actions = $t =~ /^((?:entering|leaving|restarted) .+)/gm;
-      SKIP: {
-	    Test::More::skip($test->{skip},1) if $test->{skip};
-	    Test::More::is( Dumper( \ @actions ),
-			    Dumper( $test->{actions} ),
-			    "Proper control flow for nth $test->{nth}" );
+      TODO: {
+	  SKIP: {
+		Test::More::skip($test->{skip},1) if $test->{skip};
+		$TODO = $test->{todo} if exists $test->{todo};
+		Test::More::is( Dumper( \ @actions ),
+				Dumper( $test->{actions} ),
+				"Proper control flow for nth $test->{nth}" );
+	    }
 	}
     }
     

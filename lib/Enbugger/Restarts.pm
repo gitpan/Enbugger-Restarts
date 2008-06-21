@@ -25,7 +25,7 @@ use XSLoader ();
 use vars qw( $VERSION );
 
 BEGIN {
-    $VERSION = '0.01_01';
+    $VERSION = '0.01_02';
     XSLoader::load( __PACKAGE__, $VERSION );
 
     # A word on aliases:

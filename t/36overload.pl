@@ -85,14 +85,14 @@ sub seven {
 }
 
 package X;
-use overload '+' => sub {
-    print "entering +\n";
-    if ( $::entering{'+'}++ ) {
-	print "restarted +\n";
+sub plus {
+    print "entering X::plus\n";
+    if ( $::entering{'X::plus'}++ ) {
+	print "restarted X::plus\n";
 	return;
     }
     DB::restart_at( $::nth );
-    print "leaving +\n";
+    print "leaving X::plus\n";
     return 11;
 };
 sub new {
@@ -100,8 +100,9 @@ sub new {
     my $v;
     return bless \ $v, $class;
 }
+use overload '+' => 'plus';
 package main;
-for my $nm (qw( two three five seven X::TIESCALAR )) {
+for my $nm (qw( two three five seven X::plus )) {
   my $ref = \&$nm;
   my $cv  = svref_2object( $ref );
   
