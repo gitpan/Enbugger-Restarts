@@ -16,12 +16,12 @@ package Test::Enbugger::Restarts::Require;
 # Please open the files named gpl-2.0.txt and Artistic for a copy of
 # these licenses.
 
-print "entering Test::Enbugger::Restarts::Require\n";
+print "entering require\n";
 if ( $::entering{'Test::Enbugger::Restarts::Require'}++ ) {
-    print "restarted Test::Enbugger::Restarts::Require\n";
+    print "restarted require\n";
 }
 DB::restart_at($::nth);
-print "leaving Test::Enbugger::Restarts::Require\n";
+print "leaving require\n";
 
 ## Local Variables:
 ## mode: cperl

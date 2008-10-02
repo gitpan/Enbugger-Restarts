@@ -107,13 +107,13 @@ for my $test (
 		   'restarted two' ] },
     { nth => 6,
       croak => 1,
-      expect => qr/^TODO: Can't restart main/m },
+      expect => qr/Can't restart main/ },
     { nth => 7,
       croak => 1,
-      expect => qr/piddle/i },
+      expect => qr/Can't pop to frame 7/ },
     { nth => 8,
       croak => 1,
-      expect => qr/piddle/i }
+      expect => qr/Can't pop to frame 8/ }
     ) {
     
     

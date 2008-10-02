@@ -22,17 +22,16 @@ use warnings;
 use FindBin        qw( $Bin      );
 use Test::Enbugger qw( read_file );
 use Data::Dumper   qw( Dumper    );
-use Test::More ();
+use Test::More;
 use File::Temp ();
 
-use vars qw( @EXPORT @EXPORT_OK %EXPORT_TAGS $TODO );
+use Sub::Exporter -setup => {
+			     exports => [qw[ test_restart ]],
+			     groups => [
+					all => [qw[ test_restart ]]
+				       ],
+			    };
 
-BEGIN {
-    *import = \ &Exporter::import;
-    @EXPORT_OK = qw( test_restart );
-    $EXPORT_TAGS{all} = [ @EXPORT, @EXPORT_OK ];
-    $EXPORT_TAGS{test} = [ qw( test_restart ) ];
-}
 
 sub test_restart {
     my ( $test ) = @_;
@@ -51,7 +50,8 @@ sub test_restart {
 	       );
     if ( ref $test->{perl_args} ) {
 	push @args, @{ $test->{perl_args} };
-    } elsif ( defined $test->{perl_args} ) {
+    }
+    elsif ( defined $test->{perl_args} ) {
 	push @args, $test->{perl_args};
     }
     push @args, (
@@ -60,15 +60,26 @@ sub test_restart {
 		 $tmp_nm,
 		);
     
-    local $TODO;
+    if ( $test->{todo_croak} ) {
+	$test->{"todo_$_"} ||= $test->{todo_croak} for qw( restart expect actions actions_rx );
+    }
+
   TODO: {
       SKIP: {
-	    Test::More::skip $test->{skip}, 1 if exists $test->{skip};
-	    $TODO = $test->{todo} if exists $test->{todo};
-	    system { $args[0] } @args;
-	    Test::More::cmp_ok( 0+$?,
-				( $test->{croak} ? '!=' : '==' ),
-				0, "$test->{program} $test->{nth} $tmp_nm" );
+	    skip $test->{skip}, 1 if $test->{skip};
+	    local $TODO = $test->{todo_croak};
+	    my $rc = system { $args[0] } @args;
+	    my $desc = "$test->{program} $test->{nth} $tmp_nm";
+
+	    if ( $test->{croak} ) {
+		isnt( $rc, 0, $desc );
+	    }
+	    elsif ( $test->{die} ) {
+		is( $rc, 255, $desc );
+	    }
+	    else {
+		is( $rc, 0, $desc );
+	    }
 	}
     }
     
@@ -81,9 +92,9 @@ sub test_restart {
     if ( $test->{expect} ) {
       TODO: {
 	  SKIP: {
-		Test::More::skip $test->{skip}, 1 if $test->{skip};
-		$TODO = $test->{todo} if exists $test->{todo};
-		Test::More::like( $t, $test->{expect}, "Expected $test->{expect}" );
+		skip $test->{skip}, 1 if $test->{skip};
+		local $TODO = $test->{todo_expect};
+		like( $t, $test->{expect}, "Expected $test->{expect}" );
 	    }
 	}
     }
@@ -104,39 +115,60 @@ sub test_restart {
 		$ops_2sub{$op} = $sub;
 	    }
 	}
-	    
+	
 	# Restarted @ which opcode?
 	if ( $t =~ /^cxstack_ix=-?\d+ cxix=-?\d+ cv=0x[\da-f]+ retop=\w+\(0x([\da-f]+)\)$/m ) {
 	    my $restart_op = $1;
-		
+	    
 	    # Restarted in which function?
 	    my $restart_sub = $ops_2sub{ $restart_op || '' };
-		
+	    
 	  TODO: {
 	      SKIP: {
-		    Test::More::skip( $test->{skip}, 1 ) if $test->{skip};
-		    $TODO = $test->{todo} if exists $test->{todo};
-		    Test::More::is( $restart_sub, $expected_restart_sub, "Returned to $expected_restart_sub" );
+		    skip( $test->{skip}, 1 ) if $test->{skip};
+		    local $TODO = $test->{todo_restart};
+		    is( $restart_sub, $expected_restart_sub, "Returned to $expected_restart_sub" );
 		}
 	    }
 	}
 	else {
-	    Test::More::fail( "Debugging was disabled." );
+	  TODO: {
+		local $TODO = $test->{todo_croak};
+		fail( "Debugging was disabled." );
+	    }
 	}
     }
-	
-    # The proper control flow was observed.
+    
+    # The proper control flow was observed. Try to assert either by
+    # matching a data structure (perhaps this should use Test::Deep)
+    # or by accepting a regular expression.
     if ( $test->{actions} ) {
 	local $Data::Dumper::Varname = 'actions';
 	local $Data::Dumper::Terse   = 2;
 	my @actions = $t =~ /^((?:entering|leaving|restarted) .+)/gm;
       TODO: {
 	  SKIP: {
-		Test::More::skip($test->{skip},1) if $test->{skip};
-		$TODO = $test->{todo} if exists $test->{todo};
-		Test::More::is( Dumper( \ @actions ),
-				Dumper( $test->{actions} ),
-				"Proper control flow for nth $test->{nth}" );
+		skip( $test->{skip}, 1 ) if $test->{skip};
+		local $TODO = $test->{todo_actions};
+		
+		is( Dumper( \ @actions ),
+		    Dumper( $test->{actions} ),
+		    "Proper control flow for nth $test->{nth}" );
+	    }
+	}
+    }
+    elsif ( $test->{actions_rx} ) {
+      TODO: {
+	  SKIP: {
+		skip( $test->{skip}, 1 ) if $test->{skip};
+		local $TODO = $test->{todo_actions_rx};
+		my $actions =
+		  join '',
+		    map { "$_\n" }
+		      $t =~ /^((?:entering|leaving|restarted) .+)/gm;
+		like( $actions,
+		      $test->{actions_rx},
+		      "Proper control flow for nth $test->{nth}" );
 	    }
 	}
     }
@@ -145,7 +177,6 @@ sub test_restart {
 }
 
 () = -.0;
-
 
 ## Local Variables:
 ## mode: cperl

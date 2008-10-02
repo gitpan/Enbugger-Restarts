@@ -1,5 +1,58 @@
 Revision history for Enbugger-Restarts
-
-0.01_01 Thu Jun 12, 2008
-        First version, released on an unsuspecting world.
-
+0.01_01 Thu Jun 12, 2008:
+  - First version, released on an unsuspecting world.
+0.01_02 Fri Jun 20, 2008:
+  - Cleaned up the tests a little
+  - Added stack & frame dumping diagnostics
+0.01_03:
+  - Fixed change notes for 0.01_02
+  - t/Test/Enbugger.pm:
+    - slightly more careful reading of the test output
+  - t/Test/Enbugger/Restarts.pm:
+    - Call Test::More->import because it is magical.
+    - s/use Exporter/use Sub::Exporter/
+    - Add todo_croak, die, todo_expect, todo_restart, todo_actions, actions_rx, todo_actions_rx
+  - t/Test/Enbugger/Require.pm:
+    - Changed output: s/entering Test::Enbugger::Restarts::Require/entering require/
+  - t/Test/Enbugger/Restarts/Test.pm:
+    - &DB and &SUB only operate when $::testing is on.
+    - scalar/list/void context is passed along.
+    - &sub can do $::goto
+  - t/39require.t:
+    - works now. never worked before
+  - t/38hook.t:
+    - works now
+  - t/38hook.pl:
+    - clear $? and $! before dying to get a clean exit code
+    - support warn=0 and die=0
+    - removed todos
+  - t/37destroy.t:
+    - marked todos
+  - t/36overload.t:
+    - Cleaned
+  - t/35signal.t:
+    - cleaned
+    - marked todos
+  - t/34signal.t:
+    - cleaned
+  - t/32debug.t:
+    - fixed several completely broken tests
+    - marked todos
+    - cleaned
+  - t/32debug.pl:
+    - cleaned
+    - support &goto
+  - t/31magic.t:
+    - cleaned
+  - t/30plain.t:
+    - cleaned
+  - t/30plain.pl
+    - declared debugging. This probably should have always been on.
+  - lib/Enbugger/Restarts.pm
+    - use Devel::StackBlech
+  - Restarts.xs
+    - When debugging is enabled, call Devel::StackBlech
+    - setOp(PERL_CONTEXT*,OP*) sets a context's "next" op.
+    - import dumpStacks() from Devel::StackBlech
+    - added debugging
+    - It appears there was no functional change from the previous version.

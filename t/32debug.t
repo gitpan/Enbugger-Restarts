@@ -18,7 +18,7 @@
 
 use strict;
 use warnings;
-use Test::More skip_all => 'Infinite loops';#tests => 40;
+use Test::More tests => 49;
 use FindBin '$Bin';
 use lib $Bin;
 use Test::Enbugger::Restarts 'test_restart';
@@ -29,30 +29,39 @@ $test_program =~ s/\.t\z/.pl/
 
 use constant NO_WORKY => q(Can't restart from inside debuggers);
 
+TODO: {
+    local $TODO = 'need tests for goto &$DB::sub';
+    fail( $TODO );
+}
+
+my $DB = '(?mx:
+    entering\ DB::DB\
+    leaving\ DB::DB\
+)';
+
 my @tests = (
 	     { nth => 'sub=-2',
 	       croak => 1,
-	       expect => qr/^Cannot return -2 frames at \S+ line \d+\./m },
+	       expect => qr/Cannot return -2 frames/ },
 	     { nth => 'sub=-1',
 	       croak => 1,
-	       expect => qr/^Cannot return -1 frames at \S+ line \d+\./m },
+	       expect => qr/Cannot return -1 frames/ },
 	     { nth => 'sub=0',
 	       actions => [ 'entering two',
 			    'entering three',
 			    'entering five',
 			    'entering seven',
 			    'entering DB::sub',
-			    'leaving DB::sub',
 			    'leaving seven',
 			    'leaving five',
 			    'leaving three',
 			    'leaving two' ] },
 	     { nth => 'sub=1',
+	       todo_actions => q(Doesn't seem to restart from the beginning properly),
 	       restart => 'seven',
 	       actions => [ 'entering two',
 			    'entering three',
 			    'entering five',
-			    'entering seven',
 			    'entering seven',
 			    'entering DB::sub',
 			    'restarted seven',
@@ -62,6 +71,7 @@ my @tests = (
 			    'leaving two' ] },
 	     { nth => 'sub=2',
 	       restart => 'five',
+	       todo_actions => q(Doesn't seem to restart from the beginning properly),
 	       actions => [ 'entering two',
 			    'entering three',
 			    'entering five',
@@ -76,6 +86,7 @@ my @tests = (
 			    'leaving two' ] },
 	     { nth => 'sub=3',
 	       restart => 'three',
+	       todo_actions => q(Doesn't seem to restart from the beginning properly),
 	       actions => [ 'entering two',
 			    'entering three',
 			    'entering five',
@@ -91,6 +102,7 @@ my @tests = (
 			    'leaving two' ] },
 	     { nth => 'sub=4',
 	       restart => 'two',
+	       todo_actions => q(Doesn't seem to restart from the beginning properly),
 	       actions => [ 'entering two',
 			    'entering three',
 			    'entering five',
@@ -107,103 +119,105 @@ my @tests = (
 			    'leaving two' ] },
 	     { nth => 'sub=5',
 	       croak => 1,
-	       expect => qr/^TODO: Can't restart main at \S+ line \d+\.$/m },
+	       expect => qr/Can't restart main/ },
 	     { nth => 'sub=6',
 	       croak => 1,
-	       expect => qr/piddle/i },
+	       expect => qr/Can't pop to frame 6/ },
 	     { nth => 'sub=7',
 	       croak => 1,
-	       expect => qr/piddle/i },
-	     { nth => 'sub=-2',
+	       expect => qr/Can't pop to frame 7/ },
+
+
+	     { nth => 'DB=-2',
 	       croak => 1,
-	       expect => qr/^Cannot return -2 frames at \S+ line \d+\./m },
-
-
+	       expect => qr/Cannot return -2 frames/ },
 	     { nth => 'DB=-1',
 	       croak => 1,
-	       expect => qr/^Cannot return -1 frames at \S+ line \d+\./m },
+	       expect => qr/Cannot return -1 frames/ },
 	     { nth => 'DB=0',
-	       actions => [ 'entering two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'entering DB::DB',
-			    'leaving DB::DB',
-			    'leaving seven',
-			    'leaving five',
-			    'leaving three',
-			    'leaving two' ] },
+	       actions_rx => qr/
+                   entering\ two\n
+		   entering\ three\n
+		   entering\ five\n
+		   $DB*
+		   entering\ seven\n
+		   $DB*
+		   leaving\ seven\n
+		   $DB*
+		   leaving\ five\n
+		   leaving\ three\n
+		   leaving\ two\n\z/mx },
 	     { nth => 'DB=1',
 	       todo => 'Infinite loop',
 	       restart => 'seven',
-	       actions => [ 'entering two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'entering seven',
-			    'entering DB::DB',
-			    'restarted seven',
-			    'leaving seven',
-			    'leaving five',
-			    'leaving three',
-			    'leaving two' ] },
+	       actions_rx => qr/
+                   entering\ two\n
+		   entering\ three\n
+		   entering\ five\n
+                   $DB*
+		   entering\ seven\n
+                   $DB*
+		   entering\ seven\n
+                   $DB*
+		   restarted\ seven\n
+                   $DB*
+		   leaving\ five\n
+		   leaving\ three\n
+		   leaving\ two\n\z/mx },
 	     { nth => 'DB=2',
 	       todo => 'Infinite loop',
 	       restart => 'five',
-	       actions => [ 'entering two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'entering five',
-			    'entering DB::DB',
-			    'restarted five',
-			    'entering seven',
-			    'leaving seven',
-			    'leaving five',
-			    'leaving three',
-			    'leaving two' ] },
+	       actions_rx => qr/
+                   entering\ two\n
+		   entering\ three\n
+		   entering\ five\n
+                   $DB*
+		   entering\ seven\n
+                   $DB*
+		   entering\ five\n
+                   $DB*
+		   restarted\ five\n
+                   $DB*
+		   leaving\ three\n
+		   leaving\ two\n\z/mx },
 	     { nth => 'DB=3',
 	       todo => 'Infinite loop',
 	       restart => 'three',
-	       actions => [ 'entering two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'entering DB::DB',
-			    'entering three',
-			    'restarted three',
-			    'entering five',
-			    'entering seven',
-			    'leaving seven',
-			    'leaving five',
-			    'leaving three',
-			    'leaving two' ] },
+	       actions_rx => qr/
+                   entering\ two\n
+		   entering\ three\n
+		   entering\ five\n
+                   $DB*
+                   entering\ seven\n
+                   $DB*
+		   entering\ three\n
+                   $DB*
+		   restarted\ three\n
+                   $DB*
+		   leaving\ two\n\z/mx },
 	     { nth => 'DB=4',
 	       todo => 'Infinite loop',
 	       restart => 'two',
-	       actions => [ 'entering two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'entering DB::DB',
-			    'entering two',
-			    'restarted two',
-			    'entering three',
-			    'entering five',
-			    'entering seven',
-			    'leaving seven',
-			    'leaving five',
-			    'leaving three',
-			    'leaving two' ] },
+	       actions_rx => qr/
+                   entering\ two\n
+		   entering\ three\n
+		   entering\ five\n
+                   $DB*
+		   entering\ seven\n
+                   $DB*
+		   entering\ two\n
+                   $DB*
+		   restarted\ two\n
+                   $DB*\z/mx },
 	     { nth => 'DB=5',
 	       croak => 1,
-	       expect => qr/^TODO: Can't restart main at \S+ line \d+\.$/m },
+	       expect => qr/Can't restart main/ },
 	     { nth => 'DB=6',
 	       croak => 1,
-	       expect => qr/piddle/i },
+	       expect => qr/Can't pop to frame 6/ },
 	     { nth => 'DB=7',
 	       croak => 1,
-	       expect => qr/piddle/i },
+	       expect => qr/Can't pop to frame 7/ },
 	    );
 
 for my $test ( @tests ) {

@@ -88,12 +88,17 @@ sub run {
     }
 }
 
+use constant BLOCKSIZE => 8 * (1<<10); # because?
 sub read_file {
   my $file = shift @_;
-  local $/;
+
   open my $fh, '<', $file
     or die "Can't open $file for reading: $!";
-  return scalar readline $fh;
+
+  my $c = '';
+  while ( read( $fh, $c, BLOCKSIZE, length( $c ) ) ) {
+  }
+  return $c;
 }
 
 () = -.0

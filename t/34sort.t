@@ -30,10 +30,10 @@ $test_program =~ s/\.t\z/.pl/
 for my $test (
     { nth => -2,
       croak => 1,
-      expect => qr/^Cannot return -\d+ frames at \S+ line \d+\./m },
+      expect => qr/Cannot return -2 frames/ },
     { nth => -1,
       croak => 1,
-      expect => qr/^Cannot return -\d+ frames at \S+ line \d+\./m },
+      expect => qr/Cannot return -1 frames/ },
     { nth => 0,
       actions => [ 'entering two',
 		   'entering three',
@@ -107,13 +107,13 @@ for my $test (
 		   'restarted two' ] },
     { nth => 6,
       croak => 1,
-      expect => qr/^TODO: Can't restart main/m },
+      expect => qr/Can't restart main/ },
     { nth => 7,
       croak => 1,
-      expect => qr/piddle/i },
+      expect => qr/Can't pop to frame 7/ },
     { nth => 8,
       croak => 1,
-      expect => qr/piddle/i }
+      expect => qr/Can't pop to frame 8/ },
     ) {
     
     

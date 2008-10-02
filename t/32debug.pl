@@ -19,9 +19,15 @@
 BEGIN {
     my $nth_input = shift(@ARGV) || 'sub=0';
     $nth_input =~ /^(\w+)=([-\d]+)\z/
-      or die "Invalid nth [$nth]";
+      or die "Invalid nth [$nth] . Pattern should match /^(?:sub|DB)=-?\d+\z/";
     my $target = "main::$1";
     $$target = $nth = $2;
+    
+    if ( $ARGV[0] eq 'goto' ) {
+	$main::goto = 1;
+	shift @ARGV;
+    }
+    
 
     $| = 1;
 }
@@ -85,7 +91,9 @@ sub seven {
 	return 7;
     }
 
-    $this_time = 1;
+    local $main::this_time = 1;
+    die 'possible infinite loop detected' if $main::restart_counter++ > 100;
+    DB::restart_at( $main::nth );
 
     print "leaving seven\n";
     return 7;
@@ -94,17 +102,17 @@ sub seven {
 for my $nm (qw( two three five seven DB::sub DB::DB )) {
   my $ref = \&$nm;
   my $cv  = B::svref_2object( $ref );
-  
-  local $" = ', ';
+
   my @ops;
   walkoptree_simple( $cv->ROOT,
 		     sub { push @ops, sprintf '0x%x', ${$_[0]} } );
-  printf "$nm = {@ops}\n";
+  print "$nm = {".join(', ',@ops)."}\n";
 
   printf "$nm $_=0x%x\n", ${$cv->$_}
     for qw( START ROOT );
 }
 
+$main::testing = 1;
 two();
 
 ## Local Variables:

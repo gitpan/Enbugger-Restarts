@@ -17,35 +17,38 @@ package Devel::Enbugger::Restarts::Test;
 # these licenses.
 
 package DB;
+
+# Choosing which parts are enabled.
+
+# TODO: do I need to test with both DB::sub and DB::DB enabled?
+
+sub useSub { $main::testing and $main::this_time and defined $main::sub }
+sub useDB  { $main::testing and $main::this_time and defined $main::DB }
+
 sub sub {
-    print "entering DB::sub\n" if $main::testing;
-    if (defined $main::sub and $main::this_time ) {
-	restart_at( $main::sub );
+    if ( useSub() ) {
+	print "restarting DB::sub\n" if $main::entering{'DB::sub'}++;
+	print "entering DB::sub\n";
     }
 
-    
-    if ( wantarray ) {
-	my @result = &$sub;
-	print "returning from DB::sub\n" if $main::testing;
-	return @result;
-    }
-    elsif ( defined wantarray ) {
-	my $result = &$sub;
-	print "returning from DB::sub\n" if $main::testing;
-	return $result;
+    if ( $main::goto ) {
+	goto &$DB::sub;
     }
     else {
-	&$sub;
-	print "returning from DB::sub\n" if $main::testing;
-	return;
+	return &$DB::sub;
     }
 }
 
 sub DB {
-    if ( defined $main::DB and $main::this_time ) {
-	print "entering DB::DB\n" if $main::testing;
-	restart_at( $main::DB );
-	print "returning DB::DB\n" if $main::testing;
+    if ( useDB() ) {
+	# TODO: almost certainly, this $enterin{...}++ test is wrong.
+	print "restarting DB::DB\n" if $main::entering{'DB::DB'}++;
+	print "entering DB::DB\n";
+
+	# TODO: is this safe at all???
+	# DB::restart_at( $main::DB );
+	
+	print "leaving DB::DB\n";
     }
 }
 

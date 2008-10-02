@@ -62,19 +62,59 @@ set_debug_from_environment()
 
 
 
+void
+setOp( PERL_CONTEXT *cx, OP *op )
+{
+  /*
+   * This function is pure violence.
+   */
+  
+  /* TODO: use the proper macros. */
+  switch(CxTYPE(cx)) {
+  case CXt_SUB:
+    (*cx).cx_u.cx_blk.blk_u.blku_sub.retop = op;
+    break;
+  case CXt_EVAL:
+    (*cx).cx_u.cx_blk.blk_u.blku_eval.retop = op;
+    break;
+  case CXt_LOOP:
+    (*cx).cx_u.cx_blk.blk_u.blku_loop.my_op = (LOOP*)op;
+#ifdef USE_THREADS
+    
+#else
+    (*cx).cx_u.cx_blk.blk_u.blku_loop.next_op = op;
+#endif
+    break;
+  case CXt_GIVEN:
+  case CXt_WHEN:
+    (*cx).cx_u.cx_blk.blk_u.blku_givwhen.leave_op = op;
+    break;
+  }
+}
+
+extern void dumpStacks(); /* From Devel::StackBlech */
+
+
+
+
+
 /*
  * Advances N caller() frames through the stack. If there are not
  * enough frames in this stack, return -1. Accepts a pointer to N so
  * it can communicate how much of N is left to go.
  */
+/* TODO: I32 */
 dopoptonth( I32 *nth )
 {
   I32 i;
+  /* TODO: I32 in_debugger = 0; */
   
   for ( i = cxstack_ix; i >= 0; --i ) {
     register const PERL_CONTEXT *const cx = &cxstack[i];
     
     switch (CxTYPE(cx)) {
+      /* TODO: comment out this default block. Also, shouldn't I be
+	 using break instead of continue? */
     default:
       continue;
       
@@ -92,6 +132,8 @@ dopoptonth( I32 *nth )
     case CXt_FORMAT:
       -- *nth;
       if ( 0 == *nth ) {
+	/* TODO: when there are DB::sub frames, I may need to return
+	   i+1. */
 	return i;
       }
     }
@@ -149,6 +191,11 @@ Restarts_restart_at( n )
     OP *retop;
     CV *cv;
   CODE:
+
+    if ( DEBUG ) {
+      PerlIO_printf(Perl_debug_log,"PL_DBcv=0x%x\n",PL_DBcv);
+      dumpStacks();
+    }
 
     /*
      * Validate that N is possibly valid.
@@ -310,6 +357,7 @@ Restarts_restart_at( n )
 	PerlIO_printf(Perl_debug_log,"PL_op=0x%x\n",retop);
       }
 
+      /* TODO: Consider calling setOp. */
       PL_op = retop;
     }
 

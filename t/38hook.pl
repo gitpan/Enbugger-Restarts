@@ -85,12 +85,14 @@ sub seven {
 	return 7;
     }
 
-    if ( $warn ) {
+    if ( defined $warn ) {
 	$SIG{__WARN__} = \ &signal;
 	warn 7;
     }
-    elsif ( $die ) {
+    elsif ( defined $die ) {
 	$SIG{__DIE__} = \ &signal;
+	undef $!;
+	undef $?;
 	die 7;
     }
     print "leaving seven\n";

@@ -99,13 +99,13 @@ for my $test ( { nth => -2, croak => 1 },
 			      'restarted two'] },
 	       { nth => 6,
 		 croak => 1,
-		 expect => qr/TODO/ },
+		 expect => qr/Can't restart main/ },
 	       { nth => 7,
 		 croak => 1,
-		 expect => qr/piddle/ },
+		 expect => qr/Can't pop to frame/ },
 	       { nth => 8,
 		 croak => 1,
-		 expect => qr/piddle/ },
+		 expect => qr/Can't pop to frame/ },
 	     ) {
 
     test_restart( {

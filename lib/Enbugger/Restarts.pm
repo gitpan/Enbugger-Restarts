@@ -24,8 +24,10 @@ use Enbugger;
 use XSLoader ();
 use vars qw( $VERSION );
 
+use Devel::StackBlech ();
+
 BEGIN {
-    $VERSION = '0.01_02';
+    $VERSION = '0.01_03';
     XSLoader::load( __PACKAGE__, $VERSION );
 
     # A word on aliases:

@@ -42,6 +42,7 @@ BEGIN {
 
 use blib;
 use Enbugger::Restarts ();
+BEGIN { Enbugger::Restarts::debug( 1 ) }
 
 sub two {
     print "entering two\n";
